@@ -11,21 +11,22 @@ import (
 	"strings"
 )
 
-func partOne() {
-
-	filePath := "data-part-1.txt"
+func readFileAndReturnData(filePath string) (
+	[]int,
+	[]int,
+) {
 	readFile, err := os.Open(filePath)
 
+	var listOne []int
+	var listTwo []int
 	if err != nil {
 		fmt.Println("Error reading file:", err)
-		return
+		return listOne, listTwo
 	}
 	fileScanner := bufio.NewScanner(readFile)
 
 	fileScanner.Split(bufio.ScanLines)
 
-	var listOne []int
-	var listTwo []int
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
 		trimmedStr := strings.Join(strings.Fields(line), " ")
@@ -42,6 +43,14 @@ func partOne() {
 		listTwo = append(listTwo, twoInt)
 
 	}
+	return listOne, listTwo
+}
+
+func partOne() {
+
+	filePath := "data-part-1.txt"
+	listOne, listTwo := readFileAndReturnData(filePath)
+
 	slices.Sort(listOne)
 	slices.Sort(listTwo)
 
@@ -58,36 +67,8 @@ func partOne() {
 
 func partTwo() {
 	filePathStr := "data-part-2.txt"
-	readFile, err := os.Open(filePathStr)
 
-	if err != nil {
-		fmt.Println("Error reading file:", err.Error())
-		return
-	}
-
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
-
-	var listOne []int
-	var listTwo []int
-
-	for fileScanner.Scan() {
-		line := fileScanner.Text()
-		trimmedLine := strings.Join(strings.Fields(line), " ")
-
-		splitLine := strings.Split(trimmedLine, " ")
-
-		firstInt, err1 := strconv.Atoi(splitLine[0])
-		twoInt, err2 := strconv.Atoi(splitLine[1])
-
-		if err1 != nil || err2 != nil {
-			fmt.Println(err1.Error())
-			fmt.Println(err2.Error())
-		}
-		listOne = append(listOne, firstInt)
-		listTwo = append(listTwo, twoInt)
-
-	}
+	listOne, listTwo := readFileAndReturnData(filePathStr)
 
 	var listTwoElemCount = map[int]int{}
 	var n = len(listOne)
@@ -109,11 +90,12 @@ func partTwo() {
 			total += (count * firstInt)
 		}
 	}
+	// 22545250
 	println(total)
 
 }
 
 func main() {
-	// partOne()
+	partOne()
 	partTwo()
 }
