@@ -17,8 +17,14 @@ func readFileAndReturnData(filePath string) (
 ) {
 	readFile, err := os.Open(filePath)
 
-	var listOne []int
-	var listTwo []int
+	if err != nil {
+		fmt.Println("error opening file: %w", err)
+	}
+
+	defer readFile.Close()
+
+	var listOne, listTwo []int
+
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return listOne, listTwo
@@ -31,6 +37,11 @@ func readFileAndReturnData(filePath string) (
 		line := fileScanner.Text()
 		trimmedStr := strings.Join(strings.Fields(line), " ")
 		splitStr := strings.Split(trimmedStr, " ")
+
+		if len(splitStr) < 2 {
+			fmt.Println("invalid line format: insufficient fields")
+			break
+		}
 		firstInt, err1 := strconv.Atoi(splitStr[0])
 		twoInt, err2 := strconv.Atoi(splitStr[1])
 
