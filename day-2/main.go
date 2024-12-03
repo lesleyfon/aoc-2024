@@ -34,7 +34,7 @@ import (
 		return true if we were able to iterate over every Item in the list.
 */
 
-func convertCharToInt(charOne string, charTwo string) (int, int) {
+func convertCharToInt(charOne string, charTwo string) (int, int, error) {
 
 	firstChar, err1 := strconv.Atoi(charOne)
 	secondCHar, err2 := strconv.Atoi(charTwo)
@@ -42,22 +42,20 @@ func convertCharToInt(charOne string, charTwo string) (int, int) {
 	if err1 != nil || err2 != nil {
 		fmt.Println(err1.Error())
 		fmt.Println(err2.Error())
-		// TODO: Update this to return error
-		return 0, 0
+
+		return 0, 0, fmt.Errorf("error converting char to int")
 	}
 
-	return firstChar, secondCHar
+	return firstChar, secondCHar, nil
 }
 
 func isLevelSafe(level []string) bool {
-	firstChar, secondCHar := convertCharToInt(level[0], level[1])
+	firstChar, secondCHar, err := convertCharToInt(level[0], level[1])
 
-	// TODO: uncomment this back
-	// if err1 != nil || err2 != nil {
-	// 	fmt.Println(err1.Error())
-	// 	fmt.Println(err2.Error())
-	// 	return false
-	// }
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
 	if firstChar == secondCHar {
 		return false
 	}
@@ -67,7 +65,11 @@ func isLevelSafe(level []string) bool {
 
 	for i := 1; i < N; i += 1 {
 		if ASC {
-			current, prev := convertCharToInt(level[i], level[i-1])
+			current, prev, err := convertCharToInt(level[i], level[i-1])
+			if err != nil {
+				fmt.Println(err.Error())
+				return false
+			}
 			if current < prev {
 				return false
 			}
@@ -78,7 +80,13 @@ func isLevelSafe(level []string) bool {
 			}
 
 		} else {
-			current, prev := convertCharToInt(level[i], level[i-1])
+
+			current, prev, err := convertCharToInt(level[i], level[i-1])
+
+			if err != nil {
+				fmt.Println(err.Error())
+				return false
+			}
 			if current > prev {
 				return false
 			}
