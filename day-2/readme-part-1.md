@@ -1,4 +1,5 @@
---- Day 2: Red-Nosed Reports ---
+Day 2: Red-Nosed Reports 
+---
 Fortunately, the first location The Historians want to search isn't a long walk from the Chief Historian's office.
 
 While the Red-Nosed Reindeer nuclear fusion/fission plant appears to contain no sign of the Chief Historian, the engineers there run up to you as soon as they see you. Apparently, they still talk about the time Rudolph was saved through molecular synthesis from a single electron.
@@ -33,3 +34,140 @@ In the example above, the reports can be found safe or unsafe by checking those 
 So, in this example, 2 reports are safe.
 
 #### Analyze the unusual data from the engineers. How many reports are safe?
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
+
+// https://www.scaler.com/topics/golang/golang-read-file-line-by-line/
+
+/*
+ Reports == rows
+ levels == cols
+- Read the file and for each line,
+	i. Call a function that checks if the level is safe i.e. isLevelSafe
+		1. if safe, return true
+		2. else: return false
+	isLevelSafe fn
+		- takes a row as an array
+		- create a bool to check is it is ascending or descending.
+		- if list at 0 is equal to list at one
+			- return false
+		- if list at 0 is greater than list at one
+			- set descending to true
+		- else
+			- set ascending to true
+		- create a total variable an initialize it with one
+		- iterate over each item
+			- if descending is true
+				check that the current item is less than the prev item
+				three
+		return true if we were able to iterate over every Item in the list.
+*/
+
+func convertCharToInt(charOne string, charTwo string) (int, int, error) {
+
+	firstChar, err1 := strconv.Atoi(charOne)
+	secondCHar, err2 := strconv.Atoi(charTwo)
+
+	if err1 != nil || err2 != nil {
+		fmt.Println(err1.Error())
+		fmt.Println(err2.Error())
+
+		return 0, 0, fmt.Errorf("error converting char to int")
+	}
+
+	return firstChar, secondCHar, nil
+}
+
+func isLevelSafe(level []string) bool {
+	firstChar, secondCHar, err := convertCharToInt(level[0], level[1])
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	if firstChar == secondCHar {
+		return false
+	}
+
+	var ASC bool = firstChar < secondCHar
+	N := len(level)
+
+	for i := 1; i < N; i += 1 {
+		if ASC {
+			current, prev, err := convertCharToInt(level[i], level[i-1])
+			if err != nil {
+				fmt.Println(err.Error())
+				return false
+			}
+			if current < prev {
+				return false
+			}
+			diff := current - prev
+
+			if diff < 1 || diff > 3 {
+				return false
+			}
+
+		} else {
+
+			current, prev, err := convertCharToInt(level[i], level[i-1])
+
+			if err != nil {
+				fmt.Println(err.Error())
+				return false
+			}
+			if current > prev {
+				return false
+			}
+			diff := prev - current
+
+			if diff < 1 || diff > 3 {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+func partOne() {
+	fileName := "data-part-1.txt"
+	readFile, err := os.Open(fileName)
+	if err != nil {
+		fmt.Errorf("Error while reading file")
+	}
+
+	defer readFile.Close()
+
+	fileScanner := bufio.NewScanner(readFile)
+
+	fileScanner.Split(bufio.ScanLines)
+	total := 0
+	for fileScanner.Scan() {
+
+		line := fileScanner.Text()
+		trimmedRow := strings.Join(strings.Fields(line), " ")
+		lineReport := strings.Split(trimmedRow, " ")
+
+		levelIsSafe := isLevelSafe(lineReport)
+		if levelIsSafe {
+			total += 1
+		}
+	}
+	// ANS = 356
+	fmt.Println(total)
+}
+
+func main() {
+	partOne()
+}
+
+```
