@@ -10,60 +10,71 @@ import (
 )
 
 // https://www.scaler.com/topics/golang/golang-read-file-line-by-line/
+var (
+	numberRegex     = regexp.MustCompile(`^\d+$`)
+	mulPatternRegex = regexp.MustCompile(`^mul\(\d{1,3},\d{1,3}\)$`)
+)
 
 func readFileAndReturnData(filePath string) string {
 	readFile, err := os.Open(filePath)
 	if err != nil {
-		fmt.Println("error opening file: %w", err)
+		fmt.Printf("error opening file: %v", err.Error())
 		return ""
 	}
 	defer readFile.Close()
 
 	fileScanner := bufio.NewScanner(readFile)
-	data := ""
+	builder := strings.Builder{}
 	fileScanner.Split(bufio.ScanLines)
 
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
-		data = data + line
+		builder.WriteString(line)
 	}
 
-	return data
+	return builder.String()
 }
 
 func isNumber(digit string) bool {
-	regex := regexp.MustCompile(`^\d+$`)
-	return regex.MatchString(digit)
+	return numberRegex.MatchString(digit)
 }
 
 func matchesPattern(str string) bool {
-	regex := regexp.MustCompile(`^mul\(\d{1,3},\d{1,3}\)$`)
-	return regex.MatchString(str)
+	return mulPatternRegex.MatchString(str)
 }
 
 func partTwo() {
+	// Variable
 	filePath := "data-part-2.txt"
-	conutDont := 0
-	countDo := 0
 	data := readFileAndReturnData(filePath)
+	// Determines if we should multiply the next equation
 	shouldMultiply := true
 	total := 0
 	i := 0
 	n := len(data)
+	const (
+		doLength   = 4 // length of "do()"
+		dontLength = 7 // length of "don't()"
+		mulLength  = 3 // length of "mul"
+	)
+
 	for i < n {
-		if i <= len(data)-4 {
-			do := string(data[i : i+4])
+		strStartsWithD := string(data[i]) == "d"
+		strStartsWithM := string(data[i]) == "m"
+
+		// Check if we are out of bounds, id not
+		if i <= n-doLength && strStartsWithD {
+			do := string(data[i : i+doLength])
 			if do == "do()" {
-				countDo += 1
 				shouldMultiply = true
 				i += 1
 				continue
 			}
 		}
-		if i <= len(data)-7 {
-			dont := string(data[i : i+7])
+		if i <= n-dontLength && strStartsWithD {
+			dont := string(data[i : i+dontLength])
 			if dont == "don't()" {
-				conutDont += 1
+
 				shouldMultiply = false
 				i += 1
 				continue
@@ -73,20 +84,38 @@ func partTwo() {
 			i += 1
 			continue
 		}
-		if i <= len(data)-3 {
-			mul := string(data[i : i+3])
+		if i <= n-mulLength && strStartsWithM {
+
+			mul := string(data[i : i+mulLength])
+
 			if mul == "mul" {
+				// Find the closing bracket index
 				closingBracketIdx := strings.Index(string(data[i:]), ")") + i
+				// Get the chunk
 				chunk := string(data[i : closingBracketIdx+1])
+				// Check if the chunk matches the mul pattern
 				matches := matchesPattern(chunk)
 
 				if matches {
+
 					chunkSplit := strings.Split(chunk, "mul(")
 					secondSplit := strings.Split(chunkSplit[1], ",")
-					firstInt, _ := strconv.Atoi(secondSplit[0])
+					firstInt, err := strconv.Atoi(secondSplit[0])
+
+					if err != nil {
+						fmt.Printf("error occurred while converting first split to int: %v", err)
+						i += 1
+						continue
+					}
+
 					sliceTo := len(secondSplit[1]) - 1
 
-					secondSplitInt, _ := strconv.Atoi((secondSplit[1][0:sliceTo]))
+					secondSplitInt, err := strconv.Atoi((secondSplit[1][0:sliceTo]))
+					if err != nil {
+						fmt.Printf("error occurred while converting second split to int: %v", err)
+						i += 1
+						continue
+					}
 
 					mul := firstInt * secondSplitInt
 
